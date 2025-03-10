@@ -5,15 +5,13 @@ FROM debian:latest
 RUN apt update && apt install -y \
     git cmake make g++ libssl-dev zlib1g-dev
 
-# Clone the correct uWebSockets branch and check files
-RUN git clone --recurse-submodules --branch v20.47.0 https://github.com/uNetworking/uWebSockets.git && \
-    cd uWebSockets && \
-    ls -lah && \
-    [ -f CMakeLists.txt ] || (echo "CMakeLists.txt missing!" && exit 1) && \
+# Clone uWebSockets and build it correctly
+RUN git clone --recurse-submodules https://github.com/uNetworking/uWebSockets.git && \
+    cd uWebSockets/uSockets && \
     mkdir build && cd build && \
     cmake .. && \
     make -j$(nproc) && make install && \
-    cd ../.. && rm -rf uWebSockets
+    cd ../../.. && rm -rf uWebSockets
 
 # Set working directory
 WORKDIR /app
