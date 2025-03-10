@@ -3,12 +3,13 @@ FROM debian:latest
 
 # Install dependencies
 RUN apt update && apt install -y \
-    git cmake make g++ libssl-dev zlib1g-dev
+    git cmake make g++ libssl-dev zlib1g-dev 
 
 # Clone and build uWebSockets
-RUN git clone --recurse-submodules --branch v20.30.0 https://github.com/uNetworking/uWebSockets.git && \
+RUN git clone --recurse-submodules --depth=1 --branch v20.30.0 https://github.com/uNetworking/uWebSockets.git && \
+    ls -lah uWebSockets && \
     cd uWebSockets && mkdir build && cd build && \
-    cmake -DUWS_WITHOUT_SSL=OFF -DUWS_WITH_PROXY=ON .. && \
+    cmake .. -DUWS_WITHOUT_SSL=OFF -DUWS_WITH_PROXY=ON && \
     make -j$(nproc) && make install && \
     cd ../.. && rm -rf uWebSockets
 
