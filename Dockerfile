@@ -1,27 +1,30 @@
-# Use Debian for a minimal environment
+# Use a base image with dependencies
 FROM debian:latest
 
-# Install dependencies
+# Install necessary dependencies
 RUN apt update && apt install -y \
-    git cmake make g++ libssl-dev zlib1g-dev
+    cmake g++ make git libssl-dev zlib1g-dev
 
-# Clone uWebSockets and build it correctly
+# Clone and build uWebSockets
 RUN git clone --recurse-submodules https://github.com/uNetworking/uWebSockets.git && \
-    cd uWebSockets/uSockets && \
+    cd uWebSockets && ls -lah && \
+    [ -f CMakeLists.txt ] || (echo "CMakeLists.txt missing! Fixing..." && git checkout v20.47.0 && cmake .) && \
     mkdir build && cd build && \
     cmake .. && \
     make -j$(nproc) && make install && \
-    cd ../../.. && rm -rf uWebSockets
+    cd ../.. && rm -rf uWebSockets
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
-COPY . .
 
-# Compile your C++ app
-RUN g++ -o uws-server main.cpp -luWS -lssl -lz -std=c++17
+# Copy your project files into the container
+COPY . /app
 
-# Expose the port
+# Compile your C++ project
+RUN g++ -o server main.cpp -luWS -lssl -lz -std=c++17
+
+# Expose the necessary port
 EXPOSE 3000
 
-# Run the app
-CMD ["./uws-server"]
+# Run the server
+CMD ["./server"]
