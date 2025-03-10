@@ -1,9 +1,9 @@
-# Use Debian as a base
+# Use Debian for a minimal environment
 FROM debian:latest
 
-# Install required dependencies
+# Install dependencies
 RUN apt update && apt install -y \
-    git cmake make g++ libssl-dev libuv1-dev zlib1g-dev openssl
+    git cmake make g++ libssl-dev zlib1g-dev
 
 # Clone and build uWebSockets
 RUN git clone --recurse-submodules --branch v20.30.0 https://github.com/uNetworking/uWebSockets.git && \
@@ -12,15 +12,15 @@ RUN git clone --recurse-submodules --branch v20.30.0 https://github.com/uNetwork
     make -j$(nproc) && make install && \
     cd ../.. && rm -rf uWebSockets
 
-# Set working directory for the app
+# Set working directory
 WORKDIR /app
 COPY . .
 
-# Compile the C++ app
-RUN g++ -o uws-server main.cpp -luWS -lssl -lz -luv -pthread -std=c++17
+# Compile your C++ app
+RUN g++ -o uws-server main.cpp -luWS -lssl -lz -std=c++17 -pthread
 
 # Expose the port
 EXPOSE 3000
 
-# Run the compiled binary
-CMD ["/app/uws-server"]
+# Run the app
+CMD ["./uws-server"]
