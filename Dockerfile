@@ -1,4 +1,4 @@
-# Use a base image with dependencies
+# Use a base image
 FROM debian:latest
 
 # Install necessary dependencies
@@ -7,12 +7,13 @@ RUN apt update && apt install -y \
 
 # Clone and build uWebSockets
 RUN git clone --recurse-submodules https://github.com/uNetworking/uWebSockets.git && \
-    cd uWebSockets && ls -lah && \
-    [ -f CMakeLists.txt ] || (echo "CMakeLists.txt missing! Fixing..." && git checkout v20.47.0 && cmake .) && \
+    cd uWebSockets/uSockets && \
     mkdir build && cd build && \
     cmake .. && \
     make -j$(nproc) && make install && \
-    cd ../.. && rm -rf uWebSockets
+    cd ../../ && \
+    make -j$(nproc) && make install && \
+    cd .. && rm -rf uWebSockets
 
 # Set the working directory
 WORKDIR /app
