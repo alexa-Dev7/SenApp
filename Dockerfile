@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Update package list and install required dependencies
 RUN apt-get update && apt-get install -y \
-    g++ make cmake libssl-dev \
+    curl g++ make cmake libssl-dev \
     php-cli php-json php-cgi php-mbstring php-xml php-bcmath \
     nginx supervisor \
     && apt-get clean \
