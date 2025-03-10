@@ -1,32 +1,26 @@
-# Use Debian as base image
+# Use Debian as a base
 FROM debian:latest
 
-# Set non-interactive mode
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    curl git g++ make cmake libssl-dev \
-    php-cli php-json php-cgi php-mbstring php-xml php-bcmath \
-    nginx supervisor \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Install required dependencies
+RUN apt update && apt install -y \
+    git cmake make g++ libssl-dev libuv1-dev zlib1g-dev openssl
 
 # Clone and build uWebSockets
-RUN git clone --recursive --branch v20.30.0 https://github.com/uNetworking/uWebSockets.git && \
-    cd uWebSockets && \
-    mkdir build && cd build && \
-    cmake .. && make -j$(nproc) && make install && \
+RUN git clone --recurse-submodules --branch v20.30.0 https://github.com/uNetworking/uWebSockets.git && \
+    cd uWebSockets && mkdir build && cd build && \
+    cmake -DUWS_WITHOUT_SSL=OFF -DUWS_WITH_PROXY=ON .. && \
+    make -j$(nproc) && make install && \
     cd ../.. && rm -rf uWebSockets
 
-# Set working directory
-WORKDIR /sender
-
-# Copy project files
+# Set working directory for the app
+WORKDIR /app
 COPY . .
 
-# Expose required ports
-EXPOSE 8000 9001
+# Compile the C++ app
+RUN g++ -o uws-server main.cpp -luWS -lssl -lz -luv -pthread -std=c++17
 
-# Run startup script
-CMD ["/bin/sh", "start.sh"]
+# Expose the port
+EXPOSE 3000
+
+# Run the compiled binary
+CMD ["/app/uws-server"]
