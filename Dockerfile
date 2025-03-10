@@ -1,23 +1,25 @@
-# Use a lightweight Debian-based image
+# Use official Debian base image
 FROM debian:latest
 
-# Install dependencies
-RUN apt update && apt install -y \
+# Set non-interactive frontend to avoid prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update package list & install dependencies
+RUN apt-get update && apt-get install -y \
     g++ make curl uwebsockets libssl-dev \
     php-cli php-json php-cgi php-mbstring php-xml php-bcmath \
-    nginx supervisor
+    nginx supervisor \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /app
+WORKDIR /sender
 
-# Copy project files
-COPY . /app
+# Copy all project files
+COPY . .
 
-# Expose only one port (Render assigns dynamically)
-EXPOSE 8000
+# Expose required ports
+EXPOSE 8000 9001
 
-# Set file permissions
-RUN chmod +x start.sh
-
-# Start PHP & WebSocket server
-CMD ["/bin/bash", "start.sh"]
+# Run startup script
+CMD ["/bin/sh", "start.sh"]
