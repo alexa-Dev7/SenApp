@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev libuv1-dev zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Clone uWebSockets manually (step-by-step)
+# Clone uWebSockets manually
 WORKDIR /usr/local
 RUN git clone --recurse-submodules https://github.com/uNetworking/uWebSockets.git uWebSockets
 WORKDIR /usr/local/uWebSockets
@@ -17,6 +17,9 @@ RUN git submodule update --init --recursive
 # Build and install uWebSockets
 RUN make -j$(nproc) && make install
 
+# Ensure headers are available
+RUN cp -r src /usr/local/include/uWebSockets
+
 # Clean up
 WORKDIR /usr/local
 RUN rm -rf uWebSockets
@@ -25,8 +28,8 @@ RUN rm -rf uWebSockets
 WORKDIR /app
 COPY . /app
 
-# Compile C++ server (adjust if needed)
-RUN g++ -std=c++17 -o server server.cpp -luWS -lssl -lz -lpthread
+# Compile C++ server (FIXED HEADER PATH)
+RUN g++ -std=c++17 -o server server.cpp -I/usr/local/include -L/usr/local/lib -luWS -lssl -lz -lpthread
 
 # Expose the port
 EXPOSE 3000
