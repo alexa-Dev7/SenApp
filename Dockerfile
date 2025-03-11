@@ -1,33 +1,31 @@
-# Use an official C++ image with required tools
+# Use a base image with build tools
 FROM debian:latest
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
-    build-essential \
-    cmake \
-    git \
-    libssl-dev \
-    zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
+    git cmake make g++ \
+    libssl-dev libuv1-dev zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Clone and build uWebSockets
+# Clone uWebSockets and build
 RUN git clone --recurse-submodules https://github.com/uNetworking/uWebSockets.git && \
     cd uWebSockets && \
-    git submodule update --init && \
+    git checkout v20.47.0 && \
+    git submodule update --init --recursive && \
     mkdir build && cd build && \
     cmake .. && \
     make -j$(nproc) && make install && \
     cd ../.. && rm -rf uWebSockets
 
-# Copy project files into container
+# Set working directory for your app
 WORKDIR /app
 COPY . /app
 
-# Compile the C++ application
-RUN g++ -std=c++17 -o server main.cpp -luWS -lssl -lz -lpthread
+# Compile your C++ code (adjust as needed)
+RUN g++ -std=c++17 -o server server.cpp -luWS -lssl -lz -lpthread
 
-# Expose the port your server runs on
-EXPOSE 9001
+# Expose the required port
+EXPOSE 3000
 
-# Run the application
+# Start the server
 CMD ["./server"]
