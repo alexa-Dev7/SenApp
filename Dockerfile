@@ -7,18 +7,21 @@ RUN apt-get update && apt-get install -y \
     libssl-dev libuv1-dev zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Clone and build uWebSockets
-RUN git clone --recurse-submodules https://github.com/uNetworking/uWebSockets.git && \
-    cd uWebSockets && \
-    git checkout v20.47.0 && \
-    git submodule update --init --recursive && \
-    cd uSockets && mkdir build && cd build && \
-    cmake .. && make -j$(nproc) && make install && \
-    cd ../../ && mkdir build && cd build && \
-    cmake .. && make -j$(nproc) && make install && \
-    cd ../.. && rm -rf uWebSockets
+# Clone uWebSockets manually (step-by-step)
+WORKDIR /usr/local
+RUN git clone --recurse-submodules https://github.com/uNetworking/uWebSockets.git uWebSockets
+WORKDIR /usr/local/uWebSockets
+RUN git checkout v20.47.0
+RUN git submodule update --init --recursive
 
-# Set working directory
+# Build and install uWebSockets
+RUN make -j$(nproc) && make install
+
+# Clean up
+WORKDIR /usr/local
+RUN rm -rf uWebSockets
+
+# Set working directory for the app
 WORKDIR /app
 COPY . /app
 
